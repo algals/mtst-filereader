@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <script>
+        var stompClient = null;
+        function connect() {
+            var socket = new SockJS('http://localhost:8080/chat');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function(frame) {
+                console.log('Connected: ' + frame);
+                stompClient.subscribe('/topic/messages', function(messageOutput) {
+                    showMessageOutput(JSON.parse(messageOutput.body));
+                });
+            });
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "/result", true);
+            xhttp.send();
+        }
+
+        function showMessageOutput(messageOutput) {
+            var response = document.getElementById('response')
+                response.innerHTML = JSON.stringify(messageOutput['result']);
+        }
+    </script>
+    <script type="text/javascript" th:src="@{/js/stomp.js}"></script>
+    <script type="text/javascript" th:src="@{/js/sockjs-0.3.4.js}"></script>
+</head>
+<body onload="connect()">
+
+<h1>File app</h1>
+
+<form method="POST" action="/upload" enctype="multipart/form-data">
+    <input type="file" name="file" /><br/><br/>
+    <input type="submit" value="Submit" />
+</form>
+<p id="response">Result will be here...</p>
+</body>
+</html>
