@@ -6,7 +6,6 @@ import java.util.concurrent.Executors;
 public class AppExecutorService {
 
     private static int threads = 0;
-    private ExecutorService executorService;
 
     public AppExecutorService() {
        threads = Runtime.getRuntime().availableProcessors() * 2;

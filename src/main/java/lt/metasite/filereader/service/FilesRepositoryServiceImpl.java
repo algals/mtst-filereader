@@ -12,7 +12,6 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 
 @Service
 public class FilesRepositoryServiceImpl implements FileRepoReader, FileRepoSaver {
@@ -34,18 +33,18 @@ public class FilesRepositoryServiceImpl implements FileRepoReader, FileRepoSaver
         List<Callable<Map<Enum, Map<String, Integer>>>> callableTasks = new ArrayList<>();
         Map<Enum, Map<String, Integer>> bigMap = new HashMap<>();
         Arrays.stream(FileRepo.values()).forEach(x -> {
-            callableTasks.add(()-> readFrom(x));
+            callableTasks.add(() -> readFrom(x));
         });
-        List<Future<Map<Enum, Map<String, Integer>>>> futures = executorService.invokeAll(callableTasks);
-        futures.forEach(f -> {
-            try {
-                bigMap.putAll(f.get());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-        });
+        executorService.invokeAll(callableTasks)
+                .forEach(f -> {
+                    try {
+                        bigMap.putAll(f.get());
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                });
         template.convertAndSend("/topic/messages", new CalculationResult(bigMap));
         return bigMap;
     }
@@ -54,12 +53,12 @@ public class FilesRepositoryServiceImpl implements FileRepoReader, FileRepoSaver
     public Map<Enum, Map<String, Integer>> readFrom(Enum fileName) throws FileNotFoundException {
         Map<Enum, Map<String, Integer>> bigMap = new HashMap<>();
         Map<String, Integer> map = new HashMap<>();
-        java.io.File file = new java.io.File("repo/"+fileName.toString());
-        if(file.exists()){
+        java.io.File file = new java.io.File("repo/" + fileName.toString());
+        if (file.exists()) {
             Scanner sc = new Scanner(file);
             while (sc.hasNext()) {
                 String key = sc.next();
-                map.compute(key, (k, v) -> v ==null ? 1 : ++v);
+                map.compute(key, (k, v) -> v == null ? 1 : ++v);
             }
             bigMap.put(fileName, map);
         }
@@ -78,10 +77,10 @@ public class FilesRepositoryServiceImpl implements FileRepoReader, FileRepoSaver
         writeAll(listMap);
     }
 
-    private void writeAll(Map<Character, List<String>> listMap){
+    private void writeAll(Map<Character, List<String>> listMap) {
         listMap.entrySet().stream().forEach(x -> {
             Enum fileName = factory.getFileName(x.getKey());
-            if(fileName!=null){
+            if (fileName != null) {
                 executorService.execute(() -> {
                     try {
                         writeTo(fileName, x.getValue());
@@ -96,7 +95,7 @@ public class FilesRepositoryServiceImpl implements FileRepoReader, FileRepoSaver
 
     @Override
     public void writeTo(Enum fileName, List<String> words) throws IOException {
-        File file = new File("repo/"+fileName.toString());
+        File file = new File("repo/" + fileName.toString());
         file.getParentFile().mkdirs();
         BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
         words.stream().forEach(x -> {

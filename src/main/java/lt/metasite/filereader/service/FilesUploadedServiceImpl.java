@@ -23,11 +23,11 @@ public class FilesUploadedServiceImpl implements FilesUploadedReader {
     }
 
     @Override
-    public Map<Character, List<String>>  readAllFromTmp() throws InterruptedException {
+    public Map<Character, List<String>> readAllFromTmp() throws InterruptedException {
         Map<Character, List<String>> map = new HashMap<>();
         java.io.File dir = new java.io.File("tmp");
         java.io.File[] files = dir.listFiles((dir1, name) -> !name.contains("locked"));
-        if(files.length>0){
+        if (files.length > 0) {
             List<Callable<Map<Character, List<String>>>> callableTasks = new ArrayList<>();
             Arrays.stream(files).forEach(file ->
                     callableTasks.add(
@@ -52,7 +52,7 @@ public class FilesUploadedServiceImpl implements FilesUploadedReader {
     public Map<Character, List<String>> readFrom(String filepath) throws IOException {
         Map<Character, List<String>> map = new HashMap<>();
         java.io.File file = new java.io.File(filepath);
-        File renamed =new File(file.toString()+".locked");
+        File renamed = new File(file.toString() + ".locked");
         file.renameTo(renamed);
         Scanner sc = new Scanner(renamed);
         while (sc.hasNext()) {
